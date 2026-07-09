@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Reports – Thinkster Math</title>
+    <meta name="description" content="Thinkster Math AI worksheet analysis and reporting dashboard.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <style>
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --indigo:         #4F46E5;
+            --indigo-dark:    #3730A3;
+            --indigo-light:   #EEF2FF;
+            --indigo-glow:    rgba(79,70,229,0.18);
+            --success:        #10B981;
+            --success-light:  #D1FAE5;
+            --danger:         #EF4444;
+            --danger-light:   #FEE2E2;
+            --warning:        #F59E0B;
+            --warning-light:  #FEF3C7;
+            --text-dark:      #0F172A;
+            --text-mid:       #334155;
+            --text-muted:     #64748B;
+            --bg:             #F1F5F9;
+            --surface:        #FFFFFF;
+            --surface-2:      #F8FAFC;
+            --border:         #E2E8F0;
+            --border-light:   #F1F5F9;
+            --shadow-sm:      0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md:      0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-lg:      0 20px 40px rgba(0,0,0,0.10), 0 8px 16px rgba(0,0,0,0.06);
+            --radius:         12px;
+            --radius-sm:      8px;
+            --radius-lg:      16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #1a1a3e 100%);
+            padding: 0 36px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.28);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-img {
+            height: 42px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            padding: 4px;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -0.3px;
+            line-height: 1.1;
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: rgba(255,255,255,0.55);
+            font-weight: 500;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            margin-top: 1px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-badge {
+            background: linear-gradient(135deg, var(--indigo), #7C3AED);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .app-layout {
+            display: flex;
+            flex: 1;
+            gap: 0;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 300px;
+            min-width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            overflow-y: auto;
+            position: sticky;
+            top: 70px;
+            height: calc(100vh - 70px);
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 0 20px 10px;
+        }
+
+        .sidebar-search-wrap {
+            padding: 0 16px 16px;
+        }
+
+        .sidebar-search {
+            width: 100%;
+            padding: 9px 14px 9px 38px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            background: var(--surface-2);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .sidebar-search:focus {
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px var(--indigo-glow);
+        }
+
+        .sidebar-search-icon {
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .sidebar-search-container {
+            position: relative;
+        }
+
+        .topic-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 8px;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13.5px;
+            color: var(--text-mid);
+            font-weight: 500;
+            transition: all 0.15s;
+            margin-bottom: 2px;
+        }
+
+        .topic-item:hover {
+            background: var(--indigo-light);
+            color: var(--indigo);
+        }
+
+        .topic-item.active {
+            background: linear-gradient(135deg, var(--indigo), #6366F1);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(79,70,229,0.3);
+        }
+
+        .topic-item .topic-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--indigo);
+            flex-shrink: 0;
+        }
+
+        .topic-item.active .topic-dot {
+            background: rgba(255,255,255,0.7);
+        }
+
+        .topic-count-badge {
+            margin-left: auto;
+            background: var(--border-light);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .topic-item.active .topic-count-badge {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            padding: 28px 32px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ===== STAT CARDS ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.18s, box-shadow 0.18s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.purple { background: var(--indigo-light); color: var(--indigo); }
+        .stat-icon.green  { background: var(--success-light); color: var(--success); }
+        .stat-icon.red    { background: var(--danger-light); color: var(--danger); }
+        .stat-icon.amber  { background: var(--warning-light); color: var(--warning); }
+
+        .stat-info { flex: 1; }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* ===== TOOLBAR ===== */
+        .toolbar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            max-width: 340px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 9px 14px 9px 38px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            background: var(--surface-2);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px var(--indigo-glow);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* ===== FILTER TABS ===== */
+        .filter-tabs {
+            display: flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            transition: all 0.15s;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .filter-tab:hover { background: var(--border-light); color: var(--text-dark); }
+
+        .filter-tab.active {
+            background: var(--indigo);
+            color: #fff;
+        }
+
+        /* ===== EXPORT BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.18s;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--indigo), #6366F1);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(79,70,229,0.3);
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(79,70,229,0.4); }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+        }
+        .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(16,185,129,0.4); }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text-mid);
+        }
+        .btn-outline:hover { border-color: var(--indigo); color: var(--indigo); background: var(--indigo-light); }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* ===== TABLE ===== */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .table-header-row {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .table-meta {
+            font-size: 12.5px;
+            color: var(--text-muted);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead th {
+            background: var(--surface-2);
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1.5px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .data-table thead th:first-child { width: 40px; }
+
+        .data-table tbody tr {
+            transition: background 0.12s;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface-2);
+        }
+
+        .data-table tbody td {
+            padding: 13px 16px;
+            font-size: 13.5px;
+            color: var(--text-mid);
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Checkbox */
+        .ws-checkbox {
+            width: 16px; height: 16px;
+            accent-color: var(--indigo);
+            cursor: pointer;
+        }
+
+        /* Worksheet ID link */
+        .ws-id-link {
+            font-family: 'Courier New', monospace;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--indigo);
+            cursor: pointer;
+            text-decoration: none;
+            background: var(--indigo-light);
+            padding: 3px 8px;
+            border-radius: 5px;
+            transition: background 0.15s;
+        }
+        .ws-id-link:hover { background: #C7D2FE; }
+
+        /* Status badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .badge-issue   { background: var(--danger-light); color: #B91C1C; }
+        .badge-passed  { background: var(--success-light); color: #065F46; }
+        .badge-solved  { background: var(--success-light); color: #065F46; border: 1px solid #A7F3D0; }
+        .badge-auto-ans { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+        .badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Question progress bar */
+        .q-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .q-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            max-width: 100px;
+        }
+        .q-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .q-bar-fill.green  { background: var(--success); }
+        .q-bar-fill.red    { background: var(--danger); }
+        .q-bar-fill.mixed  { background: linear-gradient(90deg, var(--success), var(--danger)); }
+        .q-bar-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 64px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; color: var(--border); }
+        .empty-state h3 { font-size: 17px; font-weight: 700; color: var(--text-mid); margin-bottom: 8px; }
+
+        /* Loading spinner */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: var(--indigo);
+        }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid var(--indigo-light);
+            border-top-color: var(--indigo);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== DETAIL MODAL ===== */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-backdrop.open { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 820px;
+            max-height: 88vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modal-in 0.2s ease;
+        }
+
+        @keyframes modal-in {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, var(--indigo-light), #fff);
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .modal-subtitle {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .modal-close {
+            width: 34px; height: 34px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted);
+            font-size: 16px;
+            transition: all 0.15s;
+        }
+        .modal-close:hover { background: var(--danger-light); border-color: var(--danger); color: var(--danger); }
+
+        .modal-body {
+            overflow-y: auto;
+            padding: 20px 24px;
+            flex: 1;
+        }
+
+        .question-card {
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .question-card-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .q-number {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .question-card-body {
+            padding: 14px 16px;
+        }
+
+        .ai-response {
+            font-size: 13.5px;
+            color: var(--text-mid);
+            line-height: 1.75;
+            white-space: pre-wrap;
+        }
+
+        /* ===== SELECT-ALL ===== */
+        .select-all-bar {
+            display: none;
+            background: linear-gradient(135deg, var(--indigo), #6366F1);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            align-items: center;
+            gap: 14px;
+        }
+        .select-all-bar.show { display: flex; }
+        .select-all-bar .sel-count { font-weight: 800; }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: var(--text-dark);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            font-weight: 500;
+            z-index: 9999;
+            box-shadow: var(--shadow-lg);
+            animation: toast-in 0.25s ease;
+            display: none;
+        }
+        .toast.show { display: block; }
+        @keyframes toast-in { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .stats-row { grid-template-columns: repeat(2,1fr); }
+            .sidebar   { width: 240px; min-width: 220px; }
+        }
+
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; }
+            .sidebar    { width: 100%; height: auto; position: static; }
+            .stats-row  { grid-template-columns: repeat(2,1fr); }
+            .main-content { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+    <div class="logo-section">
+        <img src="/static/thinkster_logo.jpg" alt="Thinkster Logo" class="logo-img" onerror="this.style.display='none'">
+        <div class="brand-text">
+            <div class="brand-name">Thinkster Math</div>
+            <div class="brand-sub">AI Reports Portal</div>
+        </div>
+    </div>
+    <div class="header-right">
+        <span class="header-badge"><i class="fas fa-chart-bar" style="margin-right:6px"></i>Reports</span>
+    </div>
+</header>
+
+<!-- ===== LAYOUT ===== -->
+<div class="app-layout">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+        <div class="sidebar-section-title">Topics</div>
+        <div class="sidebar-search-wrap">
+            <div class="sidebar-search-container">
+                <i class="fas fa-search sidebar-search-icon"></i>
+                <input type="text" id="topicSearch" class="sidebar-search" placeholder="Search topics…">
+            </div>
+        </div>
+        <div class="topic-list" id="topicList">
+            <div class="topic-item active" data-topic="" onclick="selectTopic(this, '')">
+                <span class="topic-dot"></span>
+                All Topics
+                <span class="topic-count-badge" id="allTopicCount">—</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main-content">
+
+        <!-- Stats Row -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fas fa-layer-group"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statTotal">—</div>
+                    <div class="stat-label">Total Worksheets</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon amber"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statIssues">—</div>
+                    <div class="stat-label">With Issues</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statPassed">—</div>
+                    <div class="stat-label">Without Issues</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fas fa-question-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statQuestions">—</div>
+                    <div class="stat-label">Questions Analysed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selection Bar -->
+        <div class="select-all-bar" id="selectAllBar">
+            <i class="fas fa-check-square"></i>
+            <span><span class="sel-count" id="selCountText">0</span> worksheets selected</span>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:none" onclick="clearSelection()">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <div class="search-wrap">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="wsSearch" class="search-input" placeholder="Search worksheets…" oninput="filterTable()">
+                </div>
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
+                    <button class="filter-tab" onclick="setFilter('issues', this)">⚠ With Issues</button>
+                    <button class="filter-tab" onclick="setFilter('clean', this)">✔ No Issues</button>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-left:auto">
+                <button class="btn btn-outline btn-sm" onclick="toggleSelectAll()">
+                    <i class="fas fa-check-square"></i> Select All
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <div class="table-header-row">
+                <span class="table-title" id="tableTitle">All Worksheets</span>
+                <span class="table-meta" id="tableMeta">Loading…</span>
+            </div>
+            <div id="tableContent">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <div>Loading reports…</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ===== DETAIL MODAL ===== -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModalOutside(event)">
+    <div class="modal" id="modal">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="modalTitle">Worksheet Details</div>
+                <div class="modal-subtitle" id="modalSubtitle"></div>
+            </div>
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <div class="loading-spinner"><div class="spinner"></div><div>Loading…</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirmation Dialog Modal -->
+<div class="modal-backdrop" id="confirmModalBackdrop" style="z-index: 1100;" onclick="closeConfirmModalOutside(event)">
+    <div class="modal" id="confirmModal" style="max-width: 400px; text-align: center;">
+        <div class="modal-body" style="padding: 30px 24px;">
+            <div style="font-size: 40px; color: var(--indigo); margin-bottom: 16px;">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px;">Confirm Action</h3>
+            <p style="font-size: 14.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px;">
+                Are you sure you want to mark this issue as solved?
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button class="btn btn-outline" id="confirmNoBtn" style="flex: 1;" onclick="closeConfirmModal()">No</button>
+                <button class="btn btn-primary" id="confirmYesBtn" style="flex: 1;">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =========================================================
+// State
+// =========================================================
+let allReports   = [];        // full data from server
+let filteredRows = [];        // currently displayed rows
+let currentTopic = "";        // "" = all
+let currentFilter= "all";     // all | issues | clean
+let searchQuery  = "";
+
+// =========================================================
+// Init
+// =========================================================
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadData();
+    await loadTopics();
+});
+
+async function loadData() {
+    try {
+        const res = await fetch("/api/reports");
+        allReports = await res.json();
+        applyFilters();
+        document.getElementById("allTopicCount").textContent = allReports.length;
+    } catch (e) {
+        showToast("Failed to load reports: " + e);
+    }
+}
+
+async function loadTopics() {
+    try {
+        const res    = await fetch("/api/topics");
+        const topics = await res.json();
+        const list   = document.getElementById("topicList");
+
+        // Count per topic
+        const counts = {};
+        allReports.forEach(r => {
+            const t = r.topic_name || "Unknown Topic";
+            counts[t] = (counts[t] || 0) + 1;
+        });
+
+        topics.forEach(topic => {
+            const el = document.createElement("div");
+            el.className    = "topic-item";
+            el.dataset.topic= topic;
+            el.onclick      = () => selectTopic(el, topic);
+            el.innerHTML    = `<span class="topic-dot"></span>
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${topic}">${topic}</span>
+                <span class="topic-count-badge">${counts[topic] || 0}</span>`;
+            list.appendChild(el);
+        });
+
+        // Topic search
+        document.getElementById("topicSearch").addEventListener("input", function() {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll("#topicList .topic-item[data-topic]").forEach(el => {
+                const t = (el.dataset.topic || "").toLowerCase();
+                el.style.display = (t === "" || t.includes(q)) ? "" : "none";
+            });
+        });
+    } catch(e) {
+        console.error("Failed to load topics:", e);
+    }
+}
+
+// =========================================================
+// Topic Selection
+// =========================================================
+function selectTopic(el, topic) {
+    document.querySelectorAll(".topic-item").forEach(t => t.classList.remove("active"));
+    el.classList.add("active");
+    currentTopic = topic;
+    applyFilters();
+}
+
+// =========================================================
+// Filters
+// =========================================================
+function setFilter(filter, btn) {
+    document.querySelectorAll(".filter-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFilter = filter;
+    applyFilters();
+}
+
+function filterTable() {
+    searchQuery = document.getElementById("wsSearch").value.trim().toLowerCase();
+    applyFilters();
+}
+
+function applyFilters() {
+    let rows = allReports;
+
+    // Topic filter
+    if (currentTopic) {
+        rows = rows.filter(r => r.topic_name === currentTopic);
+    }
+
+    // Issue filter
+    if (currentFilter === "issues") {
+        rows = rows.filter(r => r.has_issue);
+    } else if (currentFilter === "clean") {
+        rows = rows.filter(r => !r.has_issue);
+    }
+
+    // Search
+    if (searchQuery) {
+        rows = rows.filter(r =>
+            r.worksheet_id.toLowerCase().includes(searchQuery) ||
+            r.topic_name.toLowerCase().includes(searchQuery)
+        );
+    }
+
+    filteredRows = rows;
+    renderTable(rows);
+    updateStats(rows);
+    clearSelection();
+
+    // Update table title
+    const filterLabel = currentFilter === "issues" ? "With Issues" :
+                        currentFilter === "clean"  ? "Without Issues" : "";
+    const topicLabel  = currentTopic || "All Topics";
+    document.getElementById("tableTitle").textContent = topicLabel + (filterLabel ? ` – ${filterLabel}` : "");
+}
+
+// =========================================================
+// Stats
+// =========================================================
+function updateStats(rows) {
+    const total    = rows.length;
+    const issues   = rows.filter(r => r.has_issue).length;
+    const passed   = total - issues;
+    const qs       = rows.reduce((a, r) => a + r.total_questions, 0);
+
+    document.getElementById("statTotal").textContent     = total;
+    document.getElementById("statIssues").textContent    = issues;
+    document.getElementById("statPassed").textContent    = passed;
+    document.getElementById("statQuestions").textContent = qs;
+    document.getElementById("tableMeta").textContent     = `${total} worksheet${total !== 1 ? 's' : ''}`;
+}
+
+// =========================================================
+// Table Render
+// =========================================================
+function renderTable(rows) {
+    const container = document.getElementById("tableContent");
+
+    if (!rows.length) {
+        container.innerHTML = `<div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No worksheets found</h3>
+            <p>Try changing the filter or selecting a different topic.</p>
+        </div>`;
+        return;
+    }
+
+    const tableHTML = `
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="checkAll" class="ws-checkbox" onchange="toggleAll(this)"></th>
+                <th>#</th>
+                <th>Worksheet ID</th>
+                <th>Topic</th>
+                <th>Questions</th>
+                <th>Issues</th>
+                <th>Passed</th>
+                <th>Status</th>
+                <th>Last Analysed</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows.map((r, i) => rowHTML(r, i)).join("")}
+        </tbody>
+    </table>`;
+    container.innerHTML = tableHTML;
+}
+
+function rowHTML(r, i) {
+    const pct = r.total_questions > 0 ? Math.round((r.passed_count / r.total_questions) * 100) : 0;
+    const barClass = r.issue_count === 0 ? "green" : (r.passed_count === 0 ? "red" : "mixed");
+    const badge = r.has_issue
+        ? `<span class="badge badge-issue"><span class="badge-dot"></span>Has Issues</span>`
+        : `<span class="badge badge-passed"><span class="badge-dot"></span>No Issues</span>`;
+    const timeStr = r.latest_time ? r.latest_time.split("T")[0] || r.latest_time : "—";
+    const autoBadge = r.auto_answered 
+        ? ` <span class="badge badge-auto-ans" style="margin-left:6px; font-size:10px; padding:2px 6px;"><i class="fas fa-robot"></i> Auto Ans</span>`
+        : '';
+
+    return `<tr>
+        <td><input type="checkbox" class="ws-checkbox row-check" data-id="${r.worksheet_id}" onchange="onRowCheck()"></td>
+        <td style="color:var(--text-muted);font-size:12px">${i + 1}</td>
+        <td><span class="ws-id-link" onclick="openDetail('${r.worksheet_id}')">${r.worksheet_id}</span>${autoBadge}</td>
+        <td style="font-size:13px;color:var(--text-mid);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.topic_name}">${r.topic_name}</td>
+        <td style="font-weight:700;text-align:center">${r.total_questions}</td>
+        <td style="font-weight:700;color:${r.issue_count > 0 ? 'var(--danger)' : 'var(--text-muted)'};text-align:center">${r.issue_count}</td>
+        <td style="font-weight:700;color:var(--success);text-align:center">${r.passed_count}</td>
+        <td>${badge}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${timeStr}</td>
+        <td>
+            <button class="btn btn-outline btn-sm" onclick="openDetail('${r.worksheet_id}')">
+                <i class="fas fa-eye"></i> View
+            </button>
+        </td>
+    </tr>`;
+}
+
+// =========================================================
+// Selection
+// =========================================================
+function toggleAll(cb) {
+    document.querySelectorAll(".row-check").forEach(c => c.checked = cb.checked);
+    onRowCheck();
+}
+
+function onRowCheck() {
+    const checked = document.querySelectorAll(".row-check:checked");
+    const bar     = document.getElementById("selectAllBar");
+    document.getElementById("selCountText").textContent = checked.length;
+    if (checked.length > 0) bar.classList.add("show");
+    else bar.classList.remove("show");
+}
+
+function clearSelection() {
+    document.querySelectorAll(".row-check, #checkAll").forEach(c => c.checked = false);
+    document.getElementById("selectAllBar").classList.remove("show");
+}
+
+function toggleSelectAll() {
+    const cbs     = document.querySelectorAll(".row-check");
+    const allOn   = [...cbs].every(c => c.checked);
+    cbs.forEach(c => c.checked = !allOn);
+    const checkAll = document.getElementById("checkAll");
+    if (checkAll) checkAll.checked = !allOn;
+    onRowCheck();
+}
+
+function getSelectedIds() {
+    return [...document.querySelectorAll(".row-check:checked")].map(c => c.dataset.id);
+}
+
+// =========================================================
+// Export
+// =========================================================
+async function exportSelected(type) {
+    const ids = getSelectedIds();
+    if (!ids.length) { showToast("Please select at least one worksheet."); return; }
+    await doExport(type, { worksheet_ids: ids, topic: currentTopic });
+}
+
+async function exportCurrent(type) {
+    await doExport(type, {
+        worksheet_ids: filteredRows.map(r => r.worksheet_id),
+        topic: currentTopic
+    });
+}
+
+async function doExport(type, body) {
+    showToast(`Preparing ${type.toUpperCase()} export…`);
+    try {
+        const res = await fetch(`/api/export/${type}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            showToast("Export failed: " + (err.error || res.statusText));
+            return;
+        }
+        const blob     = await res.blob();
+        const url      = URL.createObjectURL(blob);
+        const a        = document.createElement("a");
+        const cd       = res.headers.get("Content-Disposition") || "";
+        const fnMatch  = cd.match(/filename="?([^"]+)"?/);
+        a.download     = fnMatch ? fnMatch[1] : `thinkster_export.${type === "pdf" ? "html" : "xlsx"}`;
+        a.href         = url;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(`✅ ${type.toUpperCase()} exported successfully!`);
+    } catch(e) {
+        showToast("Export error: " + e);
+    }
+}
+
+// =========================================================
+// Detail Modal
+// =========================================================
+async function openDetail(wsId) {
+    document.getElementById("modalTitle").innerHTML      = wsId;
+    document.getElementById("modalSubtitle").textContent = "Loading…";
+    document.getElementById("modalBody").innerHTML       = `<div class="loading-spinner"><div class="spinner"></div><div>Loading…</div></div>`;
+    document.getElementById("modalBackdrop").classList.add("open");
+
+    try {
+        const res  = await fetch(`/api/worksheet/${wsId}`);
+        const data = await res.json();
+        document.getElementById("modalSubtitle").textContent = data.topic_name;
+        if (data.auto_answered) {
+            document.getElementById("modalTitle").innerHTML = wsId + ` <span class="badge badge-auto-ans" style="vertical-align:middle;margin-left:8px;font-size:11px;"><i class="fas fa-robot"></i> Auto Ans</span>`;
+        } else {
+            document.getElementById("modalTitle").textContent = wsId;
+        }
+        renderModalQuestions(data.questions, wsId);
+    } catch(e) {
+        document.getElementById("modalBody").innerHTML = `<p style="color:var(--danger)">Failed to load: ${e}</p>`;
+    }
+}
+
+function formatMathText(text) {
+    if (text === undefined || text === null) return "";
+    let str = String(text).trim();
+    if (str.startsWith("[") && str.endsWith("]")) {
+        try {
+            let arr = JSON.parse(str);
+            if (Array.isArray(arr)) {
+                return arr.map(item => formatMathText(item)).join(", ");
+            }
+        } catch(e) {}
+    }
+    // If it contains LaTeX characters like backslashes, caret, or underscore,
+    // and is not already wrapped in inline math delimiter '$', wrap it.
+    if ((str.includes("\\") || str.includes("^") || str.includes("_")) && !str.startsWith("$") && !str.endsWith("$")) {
+        return "$" + str + "$";
+    }
+    return str;
+}
+
+function renderModalQuestions(questions, wsId) {
+    if (!questions.length) {
+        document.getElementById("modalBody").innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><h3>No questions found</h3></div>`;
+        return;
+    }
+    const html = questions.map(q => {
+        const isIssue = q.status === "Issue";
+        let badge = "";
+        let actionBtn = "";
+        if (isIssue) {
+            if (q.solved) {
+                badge = `<span class="badge badge-solved"><i class="fas fa-check-circle" style="margin-right:4px"></i>Solved</span>`;
+            } else {
+                badge = `<span class="badge badge-issue"><span class="badge-dot"></span>Issue</span>`;
+                actionBtn = `<button class="btn btn-outline btn-sm mark-solved-btn" onclick="confirmMarkSolved('${wsId}', ${q.question_number})" style="padding: 4px 8px; font-size:11px; margin-right: 8px;"><i class="fas fa-check"></i> Mark as Solved</button>`;
+            }
+        } else {
+            badge = `<span class="badge badge-passed"><span class="badge-dot"></span>Passed</span>`;
+        }
+            
+        let answersHTML = "";
+        if (q.website_correct_answer || q.submitted_answer) {
+            answersHTML = `
+            <div style="margin-top: 12px; padding: 10px 14px; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px dashed var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
+                <div><strong style="color:var(--text-muted)">Expected/Correct Answer:</strong><div style="margin-top:4px; font-family: 'Inter', sans-serif; font-weight:600; color:var(--success); font-size:14px;">${escapeHtml(formatMathText(q.website_correct_answer || "N/A"))}</div></div>
+                <div><strong style="color:var(--text-muted)">Student's Submitted Answer:</strong><div style="margin-top:4px; font-family: 'Inter', sans-serif; font-weight:600; color:var(--indigo); font-size:14px;">${escapeHtml(formatMathText(q.submitted_answer || "N/A"))}</div></div>
+            </div>
+            `;
+        }
+            
+        return `<div class="question-card">
+            <div class="question-card-header">
+                <span class="q-number"><i class="fas fa-question-circle" style="color:var(--indigo);margin-right:6px"></i>Question ${q.question_number}</span>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    ${actionBtn}
+                    ${badge}
+                </div>
+            </div>
+            <div class="question-card-body">
+                <div class="ai-response">${escapeHtml(q.ai_response || "(No AI response recorded)")}</div>
+                ${answersHTML}
+            </div>
+        </div>`;
+    }).join("");
+    document.getElementById("modalBody").innerHTML = html;
+    
+    // Trigger MathJax typeset to render LaTeX math formats
+    if (window.MathJax && typeof MathJax.typesetPromise === "function") {
+        MathJax.typesetPromise();
+    }
+}
+
+// =========================================================
+// Issue Solving Confirmation & Actions
+// =========================================================
+let pendingSolve = null;
+
+function confirmMarkSolved(wsId, qNum) {
+    pendingSolve = { wsId, qNum };
+    document.getElementById("confirmModalBackdrop").classList.add("open");
+}
+
+function closeConfirmModal() {
+    pendingSolve = null;
+    document.getElementById("confirmModalBackdrop").classList.remove("open");
+}
+
+function closeConfirmModalOutside(e) {
+    if (e.target === document.getElementById("confirmModalBackdrop")) {
+        closeConfirmModal();
+    }
+}
+
+// Bind confirmation Yes button
+document.addEventListener("DOMContentLoaded", () => {
+    const yesBtn = document.getElementById("confirmYesBtn");
+    if (yesBtn) {
+        yesBtn.onclick = async () => {
+            if (!pendingSolve) return;
+            const { wsId, qNum } = pendingSolve;
+            closeConfirmModal();
+            await markSolvedInDb(wsId, qNum);
+        };
+    }
+});
+
+async function markSolvedInDb(wsId, qNum) {
+    try {
+        const res = await fetch("/api/worksheet/mark-solved", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ worksheet_id: wsId, question_number: qNum })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(`Question ${qNum} marked as solved.`);
+            
+            // Re-fetch worksheet detail to update modal content
+            const detailRes  = await fetch(`/api/worksheet/${wsId}`);
+            const detailData = await detailRes.json();
+            renderModalQuestions(detailData.questions, wsId);
+            
+            // Re-load main table data in background to update counts & badges
+            await loadData();
+        } else {
+            showToast("Failed to mark as solved: " + (data.error || "Unknown error"));
+        }
+    } catch(e) {
+        showToast("Error: " + e);
+    }
+}
+
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+
+function closeModal() {
+    document.getElementById("modalBackdrop").classList.remove("open");
+}
+
+function closeModalOutside(e) {
+    if (e.target === document.getElementById("modalBackdrop")) closeModal();
+}
+
+// =========================================================
+// Toast
+// =========================================================
+let toastTimeout;
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => t.classList.remove("show"), 3500);
+}
+</script>
+</body>
+</html>
