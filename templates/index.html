@@ -123,6 +123,32 @@
             letter-spacing: 0.3px;
         }
 
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #F87171;
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+        }
+
+        .logout-btn i {
+            font-size: 13px;
+        }
+
         /* ===== MAIN LAYOUT ===== */
         .app-layout {
             display: flex;
@@ -759,6 +785,7 @@
     </div>
     <div class="header-right">
         <span class="header-badge"><i class="fas fa-chart-bar" style="margin-right:6px"></i>Reports</span>
+        <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i>Logout</a>
     </div>
 </header>
 
@@ -1272,6 +1299,10 @@ function renderModalQuestions(questions, wsId) {
             </div>
             <div class="question-card-body">
                 <div class="ai-response">${escapeHtml(q.ai_response || "(No AI response recorded)")}</div>
+                <div style="margin-top: 10px; padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px dashed var(--border); font-size: 13px; color: var(--text-mid);">
+                    <strong>Correct Answer / Result:</strong>
+                    <span class="mathjax-box" style="margin-left: 6px; font-weight: 600;">${escapeHtml(formatMathText(q.db_correct_answer) || "N/A")}</span>
+                </div>
                 ${answersHTML}
             </div>
         </div>`;

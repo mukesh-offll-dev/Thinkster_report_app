@@ -14,8 +14,10 @@ from dotenv import load_dotenv
 # Load .env from the same directory as this file
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
-from flask import Flask, render_template, jsonify, request, send_file
+from flask import Flask, render_template, jsonify, request, send_file, session, redirect, url_for
 from pymongo import MongoClient
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 # ---------------------------------------------------------------------------
 # Config from .env
@@ -41,10 +43,10 @@ db              = mongo_client[MONGO_DB]
 report_col      = db["Worksheet_Report"]      # AI analysis results
 ws_answers_col  = db["WS_answers"]            # topic names + answer keys
 answering_col   = db["Answering_Report"]      # answering run reports
+users_col       = db["users"]                 # user credentials
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+
+ 
 
 def _topic_map() -> dict:
     """Return {worksheet_id: topic_name} from WS_answers collection."""
@@ -107,12 +109,23 @@ def _get_worksheet_detail(ws_id: str):
             if k.startswith("q") and k[1:].isdigit():
                 db_answers_map[int(k[1:])] = v
             
-    # Check if worksheet was completed using automation
-    is_auto = answering_col.find_one({"worksheet_id": ws_id}) is not None
+    # Check if worksheet was completed using automation and get student answers
+    answering_doc = answering_col.find_one({"worksheet_id": ws_id})
+    is_auto = answering_doc is not None
+    answering_map = {}
+    if answering_doc and "questions" in answering_doc:
+        for q in answering_doc["questions"]:
+            q_num = q.get("question_number")
+            if q_num is not None:
+                answering_map[int(q_num)] = {
+                    "website_correct_answer": q.get("website_correct_answer", ""),
+                    "submitted_answer": q.get("submitted_answer", "")
+                }
 
     questions = []
     for d in docs:
         q_num = d.get("question_number", 0)
+        ans_info = answering_map.get(q_num, {})
         questions.append({
             "question_number": q_num,
             "image_name":      d.get("image_name", ""),
@@ -121,6 +134,8 @@ def _get_worksheet_detail(ws_id: str):
             "solved":          d.get("solved", False),
             "analysis_time":   d.get("analysis_time", ""),
             "db_correct_answer": db_answers_map.get(q_num, ""),
+            "website_correct_answer": ans_info.get("website_correct_answer", ""),
+            "submitted_answer": ans_info.get("submitted_answer", ""),
         })
     return {
         "worksheet_id": ws_id,
@@ -133,6 +148,46 @@ def _get_worksheet_detail(ws_id: str):
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+@app.before_request
+def require_login():
+    """Ensure user is logged in before accessing protected routes."""
+    # Allow login and static assets to bypass check
+    if request.endpoint in ["login", "static"]:
+        return None
+        
+    if not session.get("logged_in"):
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Unauthorized"}), 401
+        return redirect(url_for("login"))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("logged_in"):
+        return redirect(url_for("index"))
+        
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        
+        user = users_col.find_one({"username": username})
+        if user and check_password_hash(user["password"], password):
+            session["logged_in"] = True
+            session["username"] = username
+            return redirect(url_for("index"))
+        else:
+            error = "Invalid username or password"
+            
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
 
 @app.route("/")
 def index():
