@@ -1234,7 +1234,7 @@ async function openDetail(wsId) {
         } else {
             document.getElementById("modalTitle").textContent = wsId;
         }
-        renderModalQuestions(data.questions, wsId);
+        renderModalQuestions(data.questions, wsId, data.auto_answered);
     } catch(e) {
         document.getElementById("modalBody").innerHTML = `<p style="color:var(--danger)">Failed to load: ${e}</p>`;
     }
@@ -1259,7 +1259,7 @@ function formatMathText(text) {
     return str;
 }
 
-function renderModalQuestions(questions, wsId) {
+function renderModalQuestions(questions, wsId, isAuto) {
     if (!questions.length) {
         document.getElementById("modalBody").innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><h3>No questions found</h3></div>`;
         return;
@@ -1281,12 +1281,20 @@ function renderModalQuestions(questions, wsId) {
             
         let answersHTML = "";
         if (q.website_correct_answer || q.submitted_answer) {
-            answersHTML = `
-            <div style="margin-top: 12px; padding: 10px 14px; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px dashed var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
-                <div><strong style="color:var(--text-muted)">Expected/Correct Answer:</strong><div style="margin-top:4px; font-family: 'Inter', sans-serif; font-weight:600; color:var(--success); font-size:14px;">${escapeHtml(formatMathText(q.website_correct_answer || "N/A"))}</div></div>
-                <div><strong style="color:var(--text-muted)">Student's Submitted Answer:</strong><div style="margin-top:4px; font-family: 'Inter', sans-serif; font-weight:600; color:var(--indigo); font-size:14px;">${escapeHtml(formatMathText(q.submitted_answer || "N/A"))}</div></div>
-            </div>
-            `;
+            if (isAuto) {
+                answersHTML = `
+                <div style="margin-top: 12px; padding: 10px 14px; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px dashed var(--border); display: grid; grid-template-columns: 1fr; gap: 16px; font-size: 13px;">
+                    <div><strong style="color:var(--text-muted)">Submitted Answer:</strong><div style="margin-top:4px; font-family: 'Inter', sans-serif; font-weight:600; color:var(--indigo); font-size:14px;">${escapeHtml(formatMathText(q.submitted_answer || "N/A"))}</div></div>
+                </div>
+                `;
+            } else {
+                answersHTML = `
+                <div style="margin-top: 12px; padding: 10px 14px; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px dashed var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
+                    <div><strong style="color:var(--text-muted)">Expected/Correct Answer:</strong><div style="margin-top:4px; font-family: 'Inter', sans-serif; font-weight:600; color:var(--success); font-size:14px;">${escapeHtml(formatMathText(q.website_correct_answer || "N/A"))}</div></div>
+                    <div><strong style="color:var(--text-muted)">Submitted Answer:</strong><div style="margin-top:4px; font-family: 'Inter', sans-serif; font-weight:600; color:var(--indigo); font-size:14px;">${escapeHtml(formatMathText(q.submitted_answer || "N/A"))}</div></div>
+                </div>
+                `;
+            }
         }
             
         return `<div class="question-card">
@@ -1363,7 +1371,7 @@ async function markSolvedInDb(wsId, qNum) {
             // Re-fetch worksheet detail to update modal content
             const detailRes  = await fetch(`/api/worksheet/${wsId}`);
             const detailData = await detailRes.json();
-            renderModalQuestions(detailData.questions, wsId);
+            renderModalQuestions(detailData.questions, wsId, detailData.auto_answered);
             
             // Re-load main table data in background to update counts & badges
             await loadData();
